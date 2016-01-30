@@ -170,7 +170,6 @@ int main( int argc, char** argv )
 	Sophus::Matrix3f K;
 	K << fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0;
 
-
 	// make output wrapper. just set to zero if no output is required.
 	Output3DWrapper* outputWrapper = new ROSOutput3DWrapper(w,h);
 
@@ -178,8 +177,6 @@ int main( int argc, char** argv )
 	// make slam system
 	SlamSystem* system = new SlamSystem(w, h, K, doSlam);
 	system->setVisualization(outputWrapper);
-
-
 
 	// open image files: first try to open as file.
 	std::string source;
@@ -191,6 +188,36 @@ int main( int argc, char** argv )
 	}
 	ros::param::del("~files");
 
+  int save_K = 0;
+	if(!ros::param::get("~save_K", save_K))
+	  save_K = 0;
+  ros::param::del("~save_K");
+  
+  int only_K = 0;
+	if(!ros::param::get("~only_K", only_K))
+	  only_K = 0;
+  ros::param::del("~only_K");
+  
+  if (save_K == 1 || only_K == 1){
+    std::stringstream file_path;
+    file_path << source.c_str() << "K.txt";
+    
+    std::ofstream kfile;
+    kfile.open(file_path.str(), std::ios::out | std::ios::trunc);
+    if (kfile.is_open()){
+      std::cout << "Writing K to " << file_path.str() << std::endl;
+      kfile << fx << "," << cx << "," << fy << "," << cy << std::endl;
+    }
+      
+    kfile.close();
+    
+    if (only_K == 1){
+	    delete system;
+	    delete undistorter;
+	    delete outputWrapper;
+	    return 0;
+    } 
+  }
 
 	if(getdir(source, files) >= 0)
 	{
