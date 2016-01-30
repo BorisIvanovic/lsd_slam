@@ -38,6 +38,8 @@
 
 #include "opencv2/opencv.hpp"
 
+#include <boost/filesystem.hpp>
+
 std::string &ltrim(std::string &s) {
         s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
         return s;
@@ -211,14 +213,26 @@ int main( int argc, char** argv )
 		hz = 0;
 	ros::param::del("~hz");
 
-
+	// get undistorted desired behaviour
+	int save_undist = 0;
+	if(!ros::param::get("~save_undistorted", save_undist))
+	  save_undist = 0;
+  ros::param::del("~save_undistorted");
+  
+  if (save_undist == 1){
+    std::stringstream dir_path;
+    dir_path << source.c_str() << "undistorted";
+    boost::filesystem::path dir(dir_path.str());
+    if(boost::filesystem::create_directory(dir)) {
+		  printf("Created undistorted directory successfully.\n");
+	  }
+  }
 
 	cv::Mat image = cv::Mat(h,w,CV_8U);
 	int runningIDX=0;
 	float fakeTimeStamp = 0;
 
 	ros::Rate r(hz);
-
 	for(unsigned int i=0;i<files.size();i++)
 	{
 		cv::Mat imageDist = cv::imread(files[i], CV_LOAD_IMAGE_GRAYSCALE);
@@ -237,6 +251,12 @@ int main( int argc, char** argv )
 
 		undistorter->undistort(imageDist, image);
 		assert(image.type() == CV_8U);
+	  
+	  if (save_undist == 1){
+		  std::stringstream file;
+		  file << source.c_str() << "undistorted/undist_" << i << ".png";
+		  cv::imwrite(file.str(), image);
+		}
 
 		if(runningIDX == 0)
 			system->randomInit(image.data, fakeTimeStamp, runningIDX);
