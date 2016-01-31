@@ -206,7 +206,7 @@ int main( int argc, char** argv )
     kfile.open(file_path.str(), std::ios::out | std::ios::trunc);
     if (kfile.is_open()){
       std::cout << "Writing K to " << file_path.str() << std::endl;
-      kfile << fx << "," << cx << "," << fy << "," << cy << std::endl;
+      kfile << fx << "," << cx << "," << fy << "," << cy << "," << std::endl;
     }
       
     kfile.close();
