@@ -59,7 +59,7 @@ public:
 	void drawPC(float pointSize = 1, float alpha = 1);
 	void refreshPC();
 
-	int flushPC(std::ofstream* f);
+	int flushPC(std::ofstream* f, std::ofstream* pmap);
 
 
 

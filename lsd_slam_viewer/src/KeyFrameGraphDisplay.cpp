@@ -59,17 +59,19 @@ void KeyFrameGraphDisplay::draw()
 
 	if(flushPointcloud)
 	{
-
 		printf("Flushing Pointcloud to %s!\n", (ros::package::getPath("lsd_slam_viewer")+"/pc_tmp.ply").c_str());
 		std::ofstream f((ros::package::getPath("lsd_slam_viewer")+"/pc_tmp.ply").c_str());
+		std::ofstream pmap((ros::package::getPath("lsd_slam_viewer")+"/pmap.txt").c_str());
 		int numpts = 0;
 		for(unsigned int i=0;i<keyframes.size();i++)
 		{
 			if((int)i > cutFirstNKf)
-				numpts += keyframes[i]->flushPC(&f);
+				numpts += keyframes[i]->flushPC(&f, &pmap);
 		}
 		f.flush();
+		pmap.flush();
 		f.close();
+		pmap.close();
 
 		std::ofstream f2((ros::package::getPath("lsd_slam_viewer")+"/pc.ply").c_str());
 		f2 << std::string("ply\n");

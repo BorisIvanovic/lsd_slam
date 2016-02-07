@@ -266,7 +266,7 @@ void KeyFrameDisplay::drawCam(float lineWidth, float* color)
 	glPopMatrix();
 }
 
-int KeyFrameDisplay::flushPC(std::ofstream* f)
+int KeyFrameDisplay::flushPC(std::ofstream* f, std::ofstream* pmap)
 {
 
 	MyVertex* tmpBuffer = new MyVertex[width*height];
@@ -312,7 +312,12 @@ int KeyFrameDisplay::flushPC(std::ofstream* f)
 			tmpBuffer[num].point[1] = pt[1];
 			tmpBuffer[num].point[2] = pt[2];
 
-
+      *pmap << this->id << ",";
+      *pmap << x << ",";
+      *pmap << y << ",";
+      *pmap << tmpBuffer[num].point[0] << ",";
+      *pmap << tmpBuffer[num].point[1] << ",";
+      *pmap << tmpBuffer[num].point[2] << ",\n";
 
 			tmpBuffer[num].color[3] = 100;
 			tmpBuffer[num].color[2] = originalInput[x+y*width].color[0];
