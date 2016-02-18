@@ -278,15 +278,9 @@ int main( int argc, char** argv )
 	ros::Rate r(hz);
 	for(unsigned int i=0;i<files.size();i++)
 	{
-		cv::Mat imageDist, colorMat;
+		cv::Mat imageDist;
 		
-		if (save_ucolour == 1){
-		  colorMat = cv::imread(files[i], CV_LOAD_IMAGE_COLOR);
-      imageDist = cv::imread(files[i], CV_LOAD_IMAGE_GRAYSCALE);
-    }
-    else {
-      imageDist = cv::imread(files[i], CV_LOAD_IMAGE_GRAYSCALE);
-    }
+    imageDist = cv::imread(files[i], CV_LOAD_IMAGE_GRAYSCALE);
     
 		if(imageDist.rows != h_inp || imageDist.cols != w_inp)
 		{
@@ -310,10 +304,12 @@ int main( int argc, char** argv )
 		}
 		
 		if (save_ucolour == 1){
+		  cv::Mat colorMat = cv::imread(files[i], CV_LOAD_IMAGE_COLOR);
 		  undistorter->undistort(colorMat, c_image);
 		
 		  std::stringstream file;
-		  file << source.c_str() << "undist-colour/ucolour_" << i << ".png";
+		  file << source.c_str() << "undist-colour/ucolour_" << boost::format("%|06|")%i << ".png";
+
 		  cv::imwrite(file.str(), c_image);
 		}
 
