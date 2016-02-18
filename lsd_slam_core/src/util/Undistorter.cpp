@@ -374,10 +374,14 @@ void UndistorterPTAM::undistort(const cv::Mat& image, cv::OutputArray result) co
 		return;
 	}
 	
-	result.create(out_height, out_width, CV_8U);
+	result.create(out_height, out_width, image.type());
 	cv::Mat resultMat = result.getMatRef();
 	assert(result.getMatRef().isContinuous());
 	assert(image.isContinuous());
+	
+	int isColour = 0;
+	if (image.type() == CV_8UC3)
+	  isColour = 1;
 	
 	uchar* data = resultMat.data;
 
@@ -398,14 +402,38 @@ void UndistorterPTAM::undistort(const cv::Mat& image, cv::OutputArray result) co
 			yy -= yyi;
 			float xxyy = xx*yy;
 
-			// get array base pointer
-			const uchar* src = (uchar*)image.data + xxi + yyi * in_width;
+      if (isColour == 0){
+			  // get array base pointer
+			  const uchar* src = (uchar*)image.data + xxi + yyi * in_width;
 
-			// interpolate (bilinear)
-			data[idx] =  xxyy * src[1+in_width]
-			                    + (yy-xxyy) * src[in_width]
-			                    + (xx-xxyy) * src[1]
-			                    + (1-xx-yy+xxyy) * src[0];
+			  // interpolate (bilinear)
+			  data[idx] =  xxyy * src[1+in_width]
+			                      + (yy-xxyy) * src[in_width]
+			                      + (xx-xxyy) * src[1]
+			                      + (1-xx-yy+xxyy) * src[0];
+      }
+      else {
+        // get array base pointer
+			  const uchar* src = (uchar*)image.data + (xxi + yyi * in_width)*3;
+
+			  // interpolate (bilinear)
+			  data[idx*3] =  xxyy * src[(1+in_width)*3]
+			                      + (yy-xxyy) * src[in_width*3]
+			                      + (xx-xxyy) * src[1*3]
+			                      + (1-xx-yy+xxyy) * src[0*3];
+			                      
+			  // interpolate (bilinear)
+			  data[idx*3+1] =  xxyy * src[(1+in_width)*3 + 1]
+			                      + (yy-xxyy) * src[in_width*3 + 1]
+			                      + (xx-xxyy) * src[1*3 + 1]
+			                      + (1-xx-yy+xxyy) * src[0*3 + 1];
+			                      
+			  // interpolate (bilinear)
+			  data[idx*3+2] =  xxyy * src[(1+in_width)*3 + 2]
+			                      + (yy-xxyy) * src[in_width*3 + 2]
+			                      + (xx-xxyy) * src[1*3 + 2]
+			                      + (1-xx-yy+xxyy) * src[0*3 + 2];
+      }
 		}
 	}
 }
@@ -563,7 +591,10 @@ UndistorterOpenCV::~UndistorterOpenCV()
 
 void UndistorterOpenCV::undistort(const cv::Mat& image, cv::OutputArray result) const
 {
-	cv::remap(image, result, map1, map2, cv::INTER_LINEAR);
+  if (image.type() == CV_8UC1)
+	  cv::remap(image, result, map1, map2, cv::INTER_LINEAR);
+  else 
+    printf("UndistorterOpenCV: input image is a coloured image and undistorting coloured images isn't implemented for OpenCV calibrated cameras.\n");
 }
 
 const cv::Mat& UndistorterOpenCV::getK() const

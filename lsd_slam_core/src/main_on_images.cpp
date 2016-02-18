@@ -254,16 +254,40 @@ int main( int argc, char** argv )
 		  printf("Created undistorted directory successfully.\n");
 	  }
   }
+  
+	// get color desired behaviour
+	int save_ucolour = 0;
+	if(!ros::param::get("~save_ucolour", save_ucolour))
+	  save_ucolour = 0;
+  ros::param::del("~save_ucolour");
+  
+  if (save_ucolour == 1){
+    std::stringstream dir_path;
+    dir_path << source.c_str() << "undist-colour";
+    boost::filesystem::path dir(dir_path.str());
+    if(boost::filesystem::create_directory(dir)) {
+		  printf("Created colour directory successfully.\n");
+	  }
+  }
 
 	cv::Mat image = cv::Mat(h,w,CV_8U);
+	cv::Mat c_image;
 	int runningIDX=0;
 	float fakeTimeStamp = 0;
 
 	ros::Rate r(hz);
 	for(unsigned int i=0;i<files.size();i++)
 	{
-		cv::Mat imageDist = cv::imread(files[i], CV_LOAD_IMAGE_GRAYSCALE);
-
+		cv::Mat imageDist, colorMat;
+		
+		if (save_ucolour == 1){
+		  colorMat = cv::imread(files[i], CV_LOAD_IMAGE_COLOR);
+      imageDist = cv::imread(files[i], CV_LOAD_IMAGE_GRAYSCALE);
+    }
+    else {
+      imageDist = cv::imread(files[i], CV_LOAD_IMAGE_GRAYSCALE);
+    }
+    
 		if(imageDist.rows != h_inp || imageDist.cols != w_inp)
 		{
 			if(imageDist.rows * imageDist.cols == 0)
@@ -283,6 +307,14 @@ int main( int argc, char** argv )
 		  std::stringstream file;
 		  file << source.c_str() << "undistorted/undist_" << i << ".png";
 		  cv::imwrite(file.str(), image);
+		}
+		
+		if (save_ucolour == 1){
+		  undistorter->undistort(colorMat, c_image);
+		
+		  std::stringstream file;
+		  file << source.c_str() << "undist-colour/ucolour_" << i << ".png";
+		  cv::imwrite(file.str(), c_image);
 		}
 
 		if(runningIDX == 0)
